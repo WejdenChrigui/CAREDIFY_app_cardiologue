@@ -37,6 +37,7 @@ dependencies:
   google_fonts: ^8.0.2
   fl_chart: ^1.2.0
   faker: ^2.2.0
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

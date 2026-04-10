@@ -16,4 +16,17 @@ class Patient {
     required this.recordsCount,
     required this.imageUrl,
   });
+
+  factory Patient.fromJson(Map<String, dynamic> json) {
+    return Patient(
+      id: json['_id'] ?? json['id'] ?? '',
+      name: json['name'] ?? 'N/A',
+      email: json['email'] ?? '',
+      dateCreated: json['dateCreated'] ?? 'N/A',
+      status: json['status'] ?? 'Stable',
+      recordsCount: json['recordsCount'] ?? 0,
+      imageUrl: json['imageUrl'] ?? "https://i.pravatar.cc/150?u=${json['_id']}",
+    );
+  }
 }
+

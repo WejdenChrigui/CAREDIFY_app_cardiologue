@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:app_cardiologue/theme/app_theme.dart';
 import 'package:app_cardiologue/models/patient.dart';
-import 'package:app_cardiologue/utils/mock_data.dart';
+import 'package:app_cardiologue/utils/api_service.dart';
 import 'package:app_cardiologue/screens/patient_detail_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String doctorName;
@@ -14,15 +15,25 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  late List<Patient> allPatients;
-  late List<Patient> displayedPatients;
+  List<Patient> allPatients = [];
+  List<Patient> displayedPatients = [];
+  bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    allPatients = MockDataService.getPatients(15);
-    displayedPatients = List.from(allPatients);
+    _loadPatients();
+  }
+
+  Future<void> _loadPatients() async {
+    setState(() => _isLoading = true);
+    final patients = await ApiService.fetchPatients();
+    setState(() {
+      allPatients = patients;
+      displayedPatients = List.from(allPatients);
+      _isLoading = false;
+    });
   }
 
   void _filterPatients(String query) {
@@ -44,34 +55,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
             SliverToBoxAdapter(
               child: Column(
                 children: [
+                   _buildTopBar(context),
                   _buildHeader(context),
                   _buildStatsRow(),
                   _buildSearchBar(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               sliver: SliverToBoxAdapter(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Patients Overview',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
+                      'Mes Patients',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: AppTheme.textPrimary,
+                        fontWeight: FontWeight.w800,
                       ),
+                    ),
+                    TextButton(
+                      onPressed: () {},
                       child: Text(
-                        '${displayedPatients.length} Patients',
+                        'Voir tout',
                         style: TextStyle(
                           color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -80,120 +91,227 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final patient = displayedPatients[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      elevation: 1, // Subtle elevation
-                      shadowColor: Colors.black.withOpacity(0.05),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: Colors.grey.withOpacity(0.1)),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(12),
-                        leading: CircleAvatar(
-                          backgroundImage: NetworkImage(patient.imageUrl),
-                          radius: 24,
-                        ),
-                        title: Text(patient.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(patient.status),
-                        trailing: ElevatedButton(
-                          onPressed: () {
-                             Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PatientDetailScreen(patient: patient),
+            _isLoading 
+              ? const SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 100),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                )
+              : SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final patient = displayedPatients[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppTheme.borderColor, width: 1),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryColor.withOpacity(0.04),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            backgroundColor: AppTheme.primaryLight,
-                            foregroundColor: AppTheme.primaryColor,
+                            ],
                           ),
-                          child: const Text('Info'),
-                        ),
-                      ),
-                    );
-                  },
-                  childCount: displayedPatients.length,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            leading: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1), width: 2),
+                              ),
+                              child: CircleAvatar(
+                                backgroundImage: NetworkImage(patient.imageUrl),
+                                radius: 28,
+                              ),
+                            ),
+                            title: Text(
+                              patient.name,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            subtitle: Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: patient.status.toLowerCase().contains('danger') 
+                                        ? AppTheme.dangerColor 
+                                        : AppTheme.successColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  patient.status,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppTheme.textSecondary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            trailing: Container(
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryLight,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: IconButton(
+                                icon: Icon(Icons.chevron_right_rounded, color: AppTheme.primaryColor),
+                                onPressed: () {
+                                   Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PatientDetailScreen(patient: patient),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      childCount: displayedPatients.length,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)), // Bottom padding
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildTopBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.monitor_heart_rounded, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'CAREDIFY',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                  letterSpacing: 1,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+            ],
+          ),
+          CircleAvatar(
+            backgroundColor: AppTheme.primaryLight,
+            child: Icon(Icons.notifications_none_rounded, color: AppTheme.primaryColor),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildHeader(BuildContext context) {
     return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          )
+            color: AppTheme.primaryColor.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.health_and_safety, color: AppTheme.primaryColor, size: 32),
-              const SizedBox(width: 8),
-              Text('Caredify', style: Theme.of(context).textTheme.displaySmall),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Bonjour,',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    'Dr. ${widget.doctorName}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withOpacity(0.2), width: 4),
+                ),
+                child: CircleAvatar(
+                  radius: 30,
+                  backgroundColor: Colors.white24,
+                  child: Text(
+                    widget.doctorName.isNotEmpty ? widget.doctorName[0].toUpperCase() : 'D',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: AppTheme.accentColor.withOpacity(0.1),
+              color: Colors.white.withOpacity(0.15),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.accentColor.withOpacity(0.3)),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Good Morning,',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppTheme.accentColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                    Text(
-                      'Dr. ${widget.doctorName}',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: AppTheme.accentColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ],
-                ),
-                CircleAvatar(
-                  backgroundColor: AppTheme.accentColor,
-                  child: Text(
-                    widget.doctorName.isNotEmpty ? widget.doctorName[0].toUpperCase() : 'D',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                const Icon(Icons.calendar_today_rounded, color: Colors.white, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  'Vendredi, 10 Avril 2026',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
                   ),
                 ),
               ],
@@ -206,24 +324,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildStatsRow() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Row(
         children: [
           Expanded(
             child: _StatCard(
               title: 'Total Patients',
               value: allPatients.length.toString(),
-              icon: Icons.people_outline,
+              icon: Icons.people_alt_rounded,
               color: AppTheme.primaryColor,
             ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: _StatCard(
-              title: 'Live Records',
-              value: '12', // Mock static for now
-              icon: Icons.monitor_heart_outlined,
-              color: AppTheme.secondaryColor,
+              title: 'En Direct',
+              value: '12',
+              icon: Icons.sensors_rounded,
+              color: AppTheme.successColor,
             ),
           ),
         ],
@@ -233,20 +351,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: TextField(
-        controller: _searchController,
-        onChanged: _filterPatients,
-        decoration: InputDecoration(
-          hintText: 'Search patients...',
-          prefixIcon: const Icon(Icons.search),
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          onChanged: _filterPatients,
+          decoration: InputDecoration(
+            hintText: 'Rechercher un patient...',
+            prefixIcon: const Icon(Icons.search_rounded, size: 22),
+            fillColor: Colors.white,
+            filled: true,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: AppTheme.borderColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
+            ),
           ),
-          filled: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 0),
         ),
       ),
     );
@@ -272,38 +404,39 @@ class _StatCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.borderColor, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: color),
+            child: Icon(icon, color: color, size: 22),
           ),
           const SizedBox(height: 16),
           Text(
             value,
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(color: AppTheme.textPrimary),
+            style: GoogleFonts.inter(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.textPrimary,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             title,
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
     );
   }
 }
+

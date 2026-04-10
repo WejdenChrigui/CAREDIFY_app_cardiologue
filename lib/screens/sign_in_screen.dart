@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:app_cardiologue/screens/main_layout.dart';
 import 'package:app_cardiologue/screens/sign_up_screen.dart';
+import 'package:app_cardiologue/theme/app_theme.dart';
+import 'package:app_cardiologue/utils/api_service.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -27,37 +29,44 @@ class _SignInScreenState extends State<SignInScreen> {
     final password = _passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      _showSnackBar('Please enter email and password', isError: true);
+      _showSnackBar('Veuillez entrer votre email et mot de passe', isError: true);
       return;
     }
 
     setState(() => _isLoading = true);
 
-    // MOCK LOGIN DELAY
-    await Future.delayed(const Duration(seconds: 1));
+    // APPEL API RÉEL
+    final result = await ApiService.loginDoctor(
+      email: email,
+      password: password,
+    );
 
     setState(() => _isLoading = false);
 
     if (!mounted) return;
 
-    // Direct navigation to Dashboard for demo
-    _showSnackBar('Welcome back, Dr. ${email.split('@').first}!');
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MainLayout(
-          doctorName: email.split('@').first,
+    if (result['success']) {
+      _showSnackBar('Bienvenue, Dr. ${result['name']}!');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MainLayout(
+            doctorName: result['name'],
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      _showSnackBar(result['message'], isError: true);
+    }
   }
 
   void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red.shade700 : Colors.teal,
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: isError ? AppTheme.dangerColor : AppTheme.primaryColor,
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -65,7 +74,6 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -73,91 +81,112 @@ class _SignInScreenState extends State<SignInScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Logo
-                Image.asset('icon/icon.png', height: 100, width: 100),
-                const SizedBox(height: 16),
+                // Logo or Icon
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryLight,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Image.asset(
+                    'icon/icon.png',
+                    height: 80,
+                    width: 80,
+                    errorBuilder: (context, error, stackTrace) => Icon(
+                      Icons.favorite_rounded,
+                      size: 60,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
                 Text(
-                  'Caredify',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: Colors.teal,
-                    fontWeight: FontWeight.bold,
+                  'Caredify Cardio',
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.primaryColor,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Sign in to your doctor account',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
+                  'Connectez-vous à votre espace praticien',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
-                const SizedBox(height: 36),
+                const SizedBox(height: 48),
 
                 // Email field
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: const Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                  decoration: const InputDecoration(
+                    labelText: 'Adresse e-mail',
+                    hintText: 'ex: dr.smith@caredify.com',
+                    prefixIcon: Icon(Icons.email_outlined),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
                 // Password field
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
+                    labelText: 'Mot de passe',
+                    hintText: '••••••••',
+                    prefixIcon: const Icon(Icons.lock_outline_rounded),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        size: 20,
                       ),
                       onPressed: () =>
                           setState(() => _obscurePassword = !_obscurePassword),
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 28),
-
-                // Sign In button
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _signIn,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 22,
-                            width: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text('Sign In', style: TextStyle(fontSize: 16)),
                   ),
                 ),
                 
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {},
+                    child: Text(
+                      'Mot de passe oublié ?',
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 24),
+
+                // Sign In button
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _signIn,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Se connecter'),
+                ),
+                
+                const SizedBox(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Don\'t have an account? ', style: TextStyle(color: Colors.grey.shade600)),
+                    Text(
+                      'Pas encore de compte ? ',
+                      style: TextStyle(color: AppTheme.textSecondary),
+                    ),
                     TextButton(
                       onPressed: () {
                         Navigator.push(
@@ -165,11 +194,11 @@ class _SignInScreenState extends State<SignInScreen> {
                           MaterialPageRoute(builder: (context) => const SignUpScreen()),
                         );
                       },
-                      child: const Text(
-                        'Sign Up',
+                      child: Text(
+                        'S\'inscrire',
                         style: TextStyle(
-                          color: Colors.teal,
-                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -183,3 +212,4 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 }
+
