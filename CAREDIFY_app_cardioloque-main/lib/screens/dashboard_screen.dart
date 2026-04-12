@@ -119,7 +119,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         (context, index) {
                           final patient = displayedPatients[index];
                           return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
                             elevation: 0,
                             margin: const EdgeInsets.only(bottom: 16),
                             shape: RoundedRectangleBorder(
@@ -140,27 +139,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               child: ListTile(
                                 contentPadding: const EdgeInsets.all(16),
-                              leading: CircleAvatar(
-                                backgroundImage: NetworkImage(patient.imageUrl),
-                                radius: 24,
-                              ),
-                              title: Text(patient.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text(patient.status),
-                              trailing: ElevatedButton(
-                                onPressed: () {
-                                   Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => PatientDetailScreen(patient: patient),
-                                    ),
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  backgroundColor: AppTheme.primaryLight,
-                                  foregroundColor: AppTheme.primaryColor,
+                                leading: CircleAvatar(
+                                  backgroundImage: NetworkImage(patient.imageUrl),
+                                  radius: 24,
                                 ),
-                                child: const Text('Info'),
+                                title: Text(
+                                  patient.name, 
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                subtitle: Text(
+                                  patient.status,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                trailing: ElevatedButton(
+                                  onPressed: () {
+                                     Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PatientDetailScreen(patient: patient),
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    backgroundColor: AppTheme.primaryLight,
+                                    foregroundColor: AppTheme.primaryColor,
+                                  ),
+                                  child: const Text('Info'),
+                                ),
                               ),
                             ),
                           );
@@ -214,27 +221,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome back,',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontWeight: FontWeight.w500,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Dr. ${widget.doctorName}',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Welcome back,',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Dr. ${widget.doctorName}',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
@@ -359,14 +370,20 @@ class _StatCard extends StatelessWidget {
             child: Icon(icon, color: color, size: 28),
           ),
           const SizedBox(height: 16),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(color: AppTheme.textPrimary),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.displaySmall?.copyWith(color: AppTheme.textPrimary),
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             title,
             style: Theme.of(context).textTheme.bodyMedium,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ],
       ),

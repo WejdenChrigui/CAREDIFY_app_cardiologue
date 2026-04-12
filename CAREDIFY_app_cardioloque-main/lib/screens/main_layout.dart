@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_cardiologue/screens/dashboard_screen.dart';
 import 'package:app_cardiologue/screens/alerts_screen.dart';
+import 'package:app_cardiologue/screens/profile_screen.dart';
 import 'package:app_cardiologue/theme/app_theme.dart';
 
 class MainLayout extends StatefulWidget {
@@ -23,6 +24,7 @@ class _MainLayoutState extends State<MainLayout> {
     _screens = [
       DashboardScreen(doctorName: widget.doctorName),
       const AlertsScreen(),
+      ProfileScreen(doctorName: widget.doctorName),
     ];
   }
 
@@ -37,7 +39,7 @@ class _MainLayoutState extends State<MainLayout> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -67,6 +69,11 @@ class _MainLayoutState extends State<MainLayout> {
               icon: Icon(Icons.notifications_none_outlined),
               activeIcon: Icon(Icons.notifications),
               label: 'Alerts',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings_outlined),
+              activeIcon: Icon(Icons.settings),
+              label: 'Settings',
             ),
           ],
         ),

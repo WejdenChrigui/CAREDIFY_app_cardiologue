@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:app_cardiologue/screens/main_layout.dart';
+import 'package:app_cardiologue/theme/app_theme.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -61,16 +61,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _phoneController.clear();
         _passwordController.clear();
         
-        _showSnackBar('Account created! Logging you in...');
+        _showSnackBar('Account created! Please log in.');
 
-        // Navigate directly to MainLayout
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MainLayout(doctorName: name),
-          ),
-          (route) => false,
-        );
+        if (!mounted) return;
+        Navigator.pop(context); // Go back to SignInScreen
       } else {
         final data = json.decode(response.body);
         _showSnackBar(data['message'] ?? 'Sign up failed', isError: true);
@@ -86,7 +80,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red.shade700 : Colors.teal,
+        backgroundColor: isError ? AppTheme.dangerColor : AppTheme.secondaryColor,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -109,23 +103,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Logo
-                Image.asset('icon/icon.png', height: 100, width: 100),
-                const SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.1), blurRadius: 20, spreadRadius: 5)
+                    ]
+                  ),
+                  child: Image.asset('icon/icon.png', height: 90, width: 90),
+                ),
+                const SizedBox(height: 20),
                 Text(
                   'Caredify',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: Colors.teal,
-                    fontWeight: FontWeight.bold,
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Create your doctor account',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
                 ),
-                const SizedBox(height: 36),
+                const SizedBox(height: 40),
 
                 // Name field
                 TextFormField(
@@ -192,59 +192,71 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 // Role badge for Doctor
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Colors.teal.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.teal.shade200),
+                    color: AppTheme.primaryLight,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.medical_services_outlined,
-                        size: 16,
-                        color: Colors.teal.shade700,
+                        size: 18,
+                        color: AppTheme.primaryColor,
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Text(
                         'Registering as: Cardiologist',
-                        style: TextStyle(
-                          color: Colors.teal.shade700,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 13,
+                        style: const TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 32),
 
                 // Sign Up button
-                SizedBox(
+                Container(
                   width: double.infinity,
-                  height: 50,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.logoGradient,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.25),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _signUp,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     child: _isLoading
                         ? const SizedBox(
-                            height: 22,
-                            width: 22,
+                            height: 24,
+                            width: 24,
                             child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
+                              strokeWidth: 3,
                               color: Colors.white,
                             ),
                           )
                         : const Text(
                             'Create Account',
-                            style: TextStyle(fontSize: 16),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                   ),
                 ),

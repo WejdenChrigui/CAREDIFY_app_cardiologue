@@ -2,6 +2,9 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const authMiddleware = require("../middleware/auth");
+const { ObjectId } = require("../utils/objectId");
+
 const { jwtSecret } = require("../config/env");
 
 function createDoctorRoutes({ doctorsCollection, usersCollection }) {
@@ -97,6 +100,52 @@ function createDoctorRoutes({ doctorsCollection, usersCollection }) {
 				imageUrl: "https://i.pravatar.cc/150?u=" + user._id.toString()
 			}));
 			return res.status(200).json(patients);
+		} catch (error) {
+			return res.status(500).json({ message: "Server error.", error: error.message });
+		}
+	});
+
+	router.get("/profile", authMiddleware, async (req, res) => {
+		try {
+			const doctorId = req.user.doctorId;
+			if (!doctorId) return res.status(401).json({ message: "Unauthorized." });
+
+			const doctor = await doctorsCollection.findOne(
+				{ _id: new ObjectId(doctorId) },
+				{ projection: { name: 1, email: 1, phone: 1, createdAt: 1 } }
+			);
+			if (!doctor) return res.status(404).json({ message: "Doctor not found." });
+
+			return res.status(200).json(doctor);
+		} catch (error) {
+			return res.status(500).json({ message: "Server error.", error: error.message });
+		}
+	});
+
+	router.put("/profile", authMiddleware, async (req, res) => {
+		try {
+			const { name, phone } = req.body;
+			const doctorId = req.user.doctorId;
+			if (!doctorId) return res.status(401).json({ message: "Unauthorized." });
+
+			const updateData = {};
+			if (name) updateData.name = String(name).trim();
+			if (phone) updateData.phone = String(phone).trim();
+
+			if (Object.keys(updateData).length === 0) {
+				return res.status(400).json({ message: "Nothing to update." });
+			}
+
+			const result = await doctorsCollection.updateOne(
+				{ _id: new ObjectId(doctorId) },
+				{ $set: updateData }
+			);
+
+			if (result.matchedCount === 0) {
+				return res.status(404).json({ message: "Doctor not found." });
+			}
+
+			return res.status(200).json({ message: "Profile updated successfully.", updateData });
 		} catch (error) {
 			return res.status(500).json({ message: "Server error.", error: error.message });
 		}

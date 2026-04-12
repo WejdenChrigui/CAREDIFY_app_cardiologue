@@ -60,18 +60,18 @@ class AlertsScreen extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 30),
       decoration: const BoxDecoration(
-        color: AppTheme.surfaceColor,
+        gradient: AppTheme.logoGradient,
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
+          bottomLeft: Radius.circular(40),
+          bottomRight: Radius.circular(40),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            color: Colors.black26,
+            blurRadius: 15,
+            offset: Offset(0, 5),
           )
         ],
       ),
@@ -80,28 +80,28 @@ class AlertsScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.health_and_safety, color: AppTheme.primaryColor, size: 32),
-              const SizedBox(width: 8),
-              Text('Caredify', style: Theme.of(context).textTheme.displaySmall),
+              const Icon(Icons.favorite_rounded, color: Colors.white, size: 36),
+              const SizedBox(width: 12),
+              Text('Caredify', style: Theme.of(context).textTheme.displayLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 32)),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 30),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: AppTheme.dangerColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.dangerColor.withOpacity(0.3)),
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.warning_amber_rounded, color: AppTheme.dangerColor),
+                Icon(Icons.check_circle_outline, color: Colors.white),
                 const SizedBox(width: 8),
                 Text(
                   '0 Critical Alerts',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppTheme.dangerColor,
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                 ),

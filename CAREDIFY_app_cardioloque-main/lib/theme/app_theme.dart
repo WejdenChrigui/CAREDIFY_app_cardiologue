@@ -40,7 +40,6 @@ class AppTheme {
         primary: primaryColor,
         secondary: secondaryColor,
         surface: surfaceColor,
-        surface: surfaceColor,
         error: dangerColor,
       ),
       textTheme: GoogleFonts.outfitTextTheme().copyWith(
