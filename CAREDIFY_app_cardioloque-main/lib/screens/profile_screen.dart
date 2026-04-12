@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app_cardiologue/config/api_config.dart';
 import 'package:app_cardiologue/theme/app_theme.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -32,7 +33,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final token = prefs.getString('auth_token') ?? '';
 
       final response = await http.get(
-        Uri.parse('http://192.168.1.12:5000/doctor/profile'),
+        Uri.parse(ApiConfig.getProfile),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -62,7 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final token = prefs.getString('auth_token') ?? '';
 
       final response = await http.put(
-        Uri.parse('http://192.168.1.12:5000/doctor/profile'),
+        Uri.parse(ApiConfig.getProfile),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

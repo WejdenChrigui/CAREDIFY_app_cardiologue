@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:app_cardiologue/config/api_config.dart';
 import 'package:app_cardiologue/theme/app_theme.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -47,7 +48,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.12:5000/doctor/register'),
+        Uri.parse(ApiConfig.registerDoctor),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'name': name, 'email': email, 'phone': phone, 'password': password}),
       );

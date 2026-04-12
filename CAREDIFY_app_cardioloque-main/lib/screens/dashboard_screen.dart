@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app_cardiologue/config/api_config.dart';
 import 'package:app_cardiologue/theme/app_theme.dart';
 import 'package:app_cardiologue/models/patient.dart';
 import 'dart:convert';
@@ -27,7 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _fetchPatients() async {
     try {
-      final response = await http.get(Uri.parse('http://192.168.1.12:5000/doctor/patients'));
+      final response = await http.get(Uri.parse(ApiConfig.getPatients));
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {

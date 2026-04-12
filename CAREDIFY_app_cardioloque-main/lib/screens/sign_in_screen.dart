@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app_cardiologue/screens/main_layout.dart';
 import 'package:app_cardiologue/screens/sign_up_screen.dart';
+import 'package:app_cardiologue/config/api_config.dart';
 import 'package:app_cardiologue/theme/app_theme.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -39,7 +40,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.12:5000/doctor/login'),
+        Uri.parse(ApiConfig.loginDoctor),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'email': email, 'password': password}),
       );
